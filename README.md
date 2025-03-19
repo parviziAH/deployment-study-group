@@ -2,84 +2,164 @@
 ## A Beginner's Guide to Containerization and Deployment
 
 ### Overview
-This roadmap equips participants with the ability to understand and execute deployments using containerization as the foundation. It's designed for complete beginners and features practical exercises that build upon each other.
+This roadmap equips participants with the skills to deploy and manage a realistic retail store inventory system using containerization and orchestration. Designed for complete beginners, it features hands-on exercises that build a functional application step-by-step, simulating real-world workflows. Starting with Docker basics, you'll create a Python-based inventory algorithm, a web frontend to display results, and scale it with Kubernetes.
+
+### Scenario: Retail Store Inventory System
+You’re a DevOps engineer for a retail chain tasked with deploying an inventory management system:
+- **Core Component**: A Python script (`algorithm.py`) calculates stock reorder points based on sales data.
+- **Input**: `input_data.json` (e.g., item sales and stock levels).
+- **Output**: `output_data.json` (e.g., items needing restock).
+- **Evolution**: Add a web frontend, API, and production scaling over modules.
+
+### Repository Structure
+- **`quizzes/`**: Markdown files with quizzes to test theoretical knowledge.
+- **`exercises/`**: Jupyter notebooks with practical, retail-focused tasks.
+- **`resources/`**: Sample files (e.g., `algorithm.py`, `utils.py`, `input_data.json`).
+- Clone this repo: `git clone <repo-url> && cd docker-kubernetes-training`
+
+### Prerequisites
+- **Docker Desktop** (Windows/Mac) or **Docker Engine + Compose** (Linux).
+- **Minikube** (for Kubernetes modules).
+- **Jupyter Notebook**: `pip install notebook`.
+- **Lazydocker**: Install after Module 2 (instructions provided).
+- Basic terminal familiarity.
 
 ### Module Structure
+| Module | Topic | Focus | Retail Use Case |
+|--------|-------|-------|-----------------|
+| 1 | Understanding the Basics (Containerization & Docker) | Core concepts and basic Docker commands | Run a stock algorithm in a container |
+| 2 | Building Custom Images | Dockerfiles and declarative configuration | Add a web frontend for stock results |
+| 3 | Multi-Container Applications & Orchestration | Docker Compose for multi-container apps | Link algorithm and frontend |
+| 4 | Towards Production: Kubernetes Basics | Intro to Kubernetes orchestration | Deploy the system to a cluster |
+| 5 | Deployment and Versioning | Production strategies and rollbacks | Update algorithm with versioning |
+| 6 | Monitoring and Troubleshooting with k9s | Real-time monitoring and debugging | Monitor and fix inventory processing |
 
-| Module | Topic | Focus |
-|--------|-------|-------|
-| 1 | Understanding the Basics (Containerization & Docker) | Core concepts of containerization and basic Docker commands |
-| 2 | Building Custom Images | Creating custom images using Dockerfiles and understanding declarative configuration |
-| 3 | Multi-Container Applications & Orchestration | Using Docker Compose for defining and managing multi-container applications |
-| 4 | Towards Production: Kubernetes Basics | Introduction to Kubernetes as a production-grade container orchestration system |
-| 5 | Deployment and Versioning for Production-Readiness | Understanding real-life deployments, versioning, and rollback strategies |
-| 6 | Monitoring and Troubleshooting with k9s | Using k9s to monitor and manage Kubernetes clusters |
+---
 
 ### Module 1: Understanding the Basics
+**Goal**: Launch a Python container running `algorithm.py` to process inventory data.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • What is a Deployment? (Traditional vs. Containerized)<br>• Problems with traditional deployments<br>• What is Containerization? (Definition: Isolation + Shared Kernel)<br>• Benefits: Portability, Consistency, Resource Efficiency |
-| **Exercise 1:<br>Setting up a Basic Environment** | • Install Docker Desktop (or Docker Engine + Docker Compose on Linux)<br>• Verify installation with `docker version` and `docker ps`<br>• Reference: "Docker Up and Running 2023" - Chapter 3 |
-| **Exercise 2:<br>Running a Simple Container** | • Run "hello-world" container using `docker run hello-world`<br>• Explain image pulling, container creation, execution, and termination<br>• Run interactive Ubuntu container with `docker run -it ubuntu bash`<br>• Practice basic Linux commands inside the container |
-| **Exercise 3:<br>Exploring Container Layers** | • Run `docker inspect hello-world` and analyze the output<br>• Discuss images, immutability, and importance of layers<br>• Run `docker image history` commands to compare layer structures |
+| **Concepts** | • Traditional vs. containerized deployments<br>• Containerization: Isolation + Shared Kernel<br>• Benefits: Portability, Consistency, Efficiency |
+| **Exercise 1: Setup** | • Install Docker<br>• Verify: `docker version`, `docker ps` |
+| **Exercise 2: Run Algorithm** | • Create `algorithm.py`: Calculate reorder points (e.g., `if stock < sales * 2: restock`)<br>• Create `utils.py`: Helper functions (e.g., load/save JSON)<br>• Create `input_data.json`: `[{"item": "shirt", "stock": 10, "sales": 7}]`<br>• Run: `docker run -v $(pwd):/app python:3.9 python /app/algorithm.py`<br>• Output: `output_data.json` |
+| **Exercise 3: Explore Layers** | • Build a minimal image: `FROM python:3.9; COPY algorithm.py utils.py /app/`<br>• Inspect: `docker inspect <container_id>`<br>• View layers: `docker image history inventory-algorithm` |
+
+**Sample `algorithm.py`:**
+"""
+import json
+from utils import load_json, save_json
+
+data = load_json("input_data.json")
+results = [{"item": item["item"], "restock": item["stock"] < item["sales"] * 2} for item in data]
+save_json("output_data.json", results)
+"""
+
+**Sample `utils.py`:**
+"""
+import json
+
+def load_json(file):
+    with open(file, 'r') as f:
+        return json.load(f)
+
+def save_json(file, data):
+    with open(file, 'w') as f:
+        json.dump(data, f, indent=2)
+"""
+
+---
 
 ### Module 2: Building Custom Images
+**Goal**: Containerize the algorithm and add a web frontend, monitor with Lazydocker.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • Introduction to Dockerfiles: syntax and common instructions<br>• Dockerignore: reducing image size<br>• Build Context: importance of directory and files used<br>• Images as instructions: versioning and compatibility |
-| **Exercise 4:<br>Creating a Basic Dockerfile** | • Create directory with simple index.html file<br>• Create Dockerfile using nginx:latest base image<br>• Build image using `docker build -t my-nginx .`<br>• Run container mapping port 80 to host port<br>• Access website in browser |
-| **Exercise 5:<br>Adding Configuration with Environment Variables** | • Modify index.html to include variable message<br>• Update Dockerfile to set default value for MESSAGE<br>• Rebuild image and run container with custom message<br>• Demonstrate environment variables for configuration |
+| **Concepts** | • Dockerfiles: Syntax, instructions<br>• `.dockerignore`: Optimize builds<br>• Build context and versioning |
+| **Exercise 4: Algorithm Image** | • Dockerfile: `FROM python:3.9; COPY algorithm.py utils.py input_data.json /app/; WORKDIR /app`<br>• Build: `docker build -t inventory-algorithm .`<br>• Run: `docker run -v $(pwd)/output:/app/output inventory-algorithm python algorithm.py` |
+| **Exercise 5: Web Frontend** | • Create `index.html`: `<h1>Restock: <span id="restock"></span></h1>`<br>• Dockerfile: `FROM nginx:latest; COPY index.html /usr/share/nginx/html/; ENV OUTPUT_PATH=/app/output_data.json`<br>• Build: `docker build -t inventory-web .`<br>• Run: `docker run -d -p 80:80 -v $(pwd)/output:/app inventory-web` |
+| **Monitoring with Lazydocker** | • Install Lazydocker: [Instructions](https://github.com/jesseduffield/lazydocker#installation)<br>• Run: `lazydocker`<br>• Monitor `inventory-algorithm` and `inventory-web` |
+
+---
 
 ### Module 3: Multi-Container Applications & Orchestration
+**Goal**: Orchestrate the algorithm and frontend with Docker Compose.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • What is Orchestration?<br>• Introduction to Docker Compose: YAML structure, services, networks, volumes<br>• Benefits of Compose: Simplicity, repeatability, dependency management<br>• Difference between Docker Compose and Kubernetes |
-| **Exercise 6:<br>Creating a Simple Docker Compose File** | • Create docker-compose.yml for web and db services<br>• Define shared network for container communication<br>• Link web service to database using environment variables<br>• Reference: Buelta's Book - Chapter 8 |
-| **Exercise 7:<br>Managing the Multi-Container Application** | • Use `docker compose up -d` to start the application<br>• Use `docker compose ps` to check container status<br>• Use `docker compose logs web` to view service logs<br>• Use `docker compose down` to stop and remove the application |
+| **Concepts** | • Orchestration basics<br>• Docker Compose: YAML, services, networks |
+| **Exercise 6: Compose File** | • Create `docker-compose.yml`:<br>"""
+version: '3'
+services:
+  algorithm:
+    image: inventory-algorithm
+    volumes:
+      - ./output:/app/output
+    command: python algorithm.py
+  web:
+    image: inventory-web
+    ports:
+      - "80:80"
+    volumes:
+      - ./output:/app
+networks:
+  default:
+""" |
+| **Exercise 7: Manage App** | • Start: `docker compose up -d`<br>• Check: `docker compose ps`<br>• Logs: `docker compose logs algorithm`<br>• Stop: `docker compose down` |
+
+---
 
 ### Module 4: Towards Production: Kubernetes Basics
+**Goal**: Deploy the inventory system to Kubernetes.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • Need for Orchestration at Scale: Resource Management, Scheduling, HA<br>• Kubernetes Architecture: Control Plane, Nodes, Pods, Services, Deployments<br>• Key Kubernetes Concepts: Declarative Configuration, Health Checks, Auto-Scaling<br>• Tools: kubectl |
-| **Exercise 8:<br>Setting up a Local Kubernetes Cluster** | • Install Minikube (or Kind/k3s)<br>• Start Minikube using `minikube start`<br>• Verify installation with `kubectl cluster-info` and `kubectl get nodes`<br>• Reference: "Docker Up and Running 2023" - Chapter 3 |
-| **Exercise 9:<br>Deploying a Simple Application to Kubernetes** | • Create a Deployment for nginx image<br>• Expose the Deployment using a Service of type NodePort<br>• Find service URL and access application in browser<br>• Reference: Buelta's Book - Chapter 5 |
+| **Concepts** | • Kubernetes: Control Plane, Pods, Services<br>• Declarative config, health checks |
+| **Exercise 8: Setup Cluster** | • Install Minikube: `minikube start`<br>• Verify: `kubectl cluster-info`, `kubectl get nodes` |
+| **Exercise 9: Deploy App** | • Create `algorithm-deployment.yaml` and `web-deployment.yaml`<br>• Expose: `kubectl expose deployment web --type=NodePort --port=80`<br>• Access: `minikube service web --url` |
 
-### Module 5: Deployment and Versioning for Production-Readiness
+---
+
+### Module 5: Deployment and Versioning
+**Goal**: Update the algorithm with new logic and test rollbacks.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • Testing images in production: Versioning and Rollback<br>• Docker workflow: Ensuring data and code correctness<br>• Versioning: Tags and semantic versioning<br>• CI/CD integration |
-| **Exercise 10:<br>Setting deployment strategy** | • Replicate nginx deployment with different strategies<br>• Compare rollingUpdate and Recreate deployment types<br>• Create a faulty deployment to test k8s rollback functionality<br>• Practice troubleshooting techniques |
+| **Concepts** | • Versioning: Tags, semantic versioning<br>• Deployment strategies: RollingUpdate, Recreate |
+| **Exercise 10: Strategy & Rollback** | • Update `algorithm.py` (e.g., stricter restock logic)<br>• Build: `docker build -t inventory-algorithm:v2 .`<br>• Update: `kubectl set image deployment/algorithm algorithm=inventory-algorithm:v2`<br>• Rollback: `kubectl rollout undo deployment/algorithm` |
+
+---
 
 ### Module 6: Monitoring and Troubleshooting with k9s
+**Goal**: Monitor and debug the inventory system.
 
 | Topic | Content |
 |-------|---------|
-| **Theoretical Concepts** | • Introduction to k9s and its benefits<br>• Monitoring Kubernetes resources in real-time<br>• Understanding resource utilization and performance metrics<br>• Troubleshooting patterns and best practices |
-| **Exercise 11:<br>Installing and Configuring k9s** | • Install k9s on your local machine<br>• Configure k9s to connect to your Minikube cluster<br>• Explore the k9s interface and basic navigation<br>• Customize k9s view to show relevant information |
-| **Exercise 12:<br>Monitoring Cluster Resources** | • Use k9s to monitor pods, deployments, and services<br>• View logs of running containers directly in k9s<br>• Monitor resource usage (CPU, memory) of pods<br>• Set up custom views for different resource types |
-| **Exercise 13:<br>Troubleshooting with k9s** | • Identify and diagnose pod failures<br>• Investigate resource constraints and limits<br>• Execute commands within pods using k9s<br>• Practice rolling restarts and scaling operations |
+| **Concepts** | • k9s benefits<br>• Real-time monitoring, troubleshooting |
+| **Exercise 11: Setup k9s** | • Install k9s: [Instructions](https://k9scli.io/topics/install/)<br>• Run: `k9s` |
+| **Exercise 12: Monitor** | • View pods, logs, CPU/memory usage<br>• Customize views |
+| **Exercise 13: Troubleshoot** | • Diagnose algorithm failures<br>• Scale: `kubectl scale deployment/algorithm --replicas=3` |
+
+---
 
 ### Key Training Emphases
-
 | Emphasis | Description |
 |----------|-------------|
-| **Practical Application** | Tie each concept to real-world use cases participants will encounter |
-| **Troubleshooting** | Encourage experimentation and guide through common issues using diagnostic tools |
-| **Security** | Continuously mention security best practices (non-root users, minimizing privileges, secret management) |
-| **Questions** | Allocate plenty of time for questions and discussion |
-| **Monitoring** | Emphasize the importance of observability in containerized environments |
+| **Practical Application** | Process retail inventory data with a custom algorithm |
+| **Troubleshooting** | Fix algorithm errors, handle bad input data |
+| **Security** | Use non-root users, secure file mounts |
+| **Realism** | Simulate stock analysis, updates, and scaling |
+| **Monitoring** | Use Lazydocker and k9s for observability |
 
 ### Notable Quotes
+- **Buelta's Book**: "Containers are extremely portable… lightweight… and secure."
+- **Docker Up and Running 2023**: "Docker made Linux containers approachable for all engineers."
 
-| Source | Quote |
-|--------|-------|
-| Buelta's Book | "...containers are extremely portable, as they are detached from the underlying hardware and the platform that runs them; they are very lightweight, as a minimal amount of data needs to be included, and they are secure, as the exposed attack surface of a container is extremely small." |
-| "Docker Up and Running 2023" | "Docker single-handedly made Linux containers, which have been publicly available since 2008, approachable and useful for all computer engineers. Docker fits containers relatively easily into the existing workflow and processes of real companies." |
-| Buelta's Book | "As you may already have noticed, this is a hassle to read, is not very flexible, will be a pain to edit, and might fail unexpectedly in several places." (comparing shell scripts to Docker Compose) |
-| Buelta's Book | "...there's an overhead in creating microservices, as there's some work that gets replicated on each service. That overhead gets compensated by allowing independent and parallel development." |
-| Buelta's Book | "It is highly recommended that you tag your CI/CD builds with something that uniquely identifies the exact source code commit that was used to build them. In a git workflow, this could be the git hash related to the commit." |
+### Getting Started
+1. Install prerequisites.
+2. Open `exercises/module1_exercises.ipynb` in Jupyter: `jupyter notebook`.
+3. Follow quizzes and exercises in order.
+4. Ask questions in our study group!
+
+Happy deploying!
