@@ -12,7 +12,7 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 - **Evolution**: Add a web frontend, API, and production scaling over modules.
 
 ### Repository Structure
-- **`quizzes/`**: Markdown files with quizzes to test theoretical knowledge.
+- **`theory/`**: Markdown files with quizzes to test theoretical knowledge.
 - **`exercises/`**: Jupyter notebooks with practical, retail-focused tasks.
 - **`resources/`**: Sample files (e.g., `algorithm.py`, `utils.py`, `input_data.json`).
 - Clone this repo: `git clone <repo-url> && cd docker-kubernetes-training`
@@ -20,7 +20,7 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 ### Prerequisites
 - **Docker Desktop** (Windows/Mac) or **Docker Engine + Compose** (Linux).
 - **Minikube** (for Kubernetes modules).
-- **Jupyter Notebook**: `pip install notebook`.
+- **Jupyter Notebook**: `poetry add notebook`.
 - **Lazydocker**: Install after Module 2 (instructions provided).
 - Basic terminal familiarity.
 
