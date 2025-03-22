@@ -1,0 +1,27 @@
+[
+  {
+    "item": "shirt",
+    "stock": 10,
+    "sales": 7
+  },
+  {
+    "item": "pants",
+    "stock": 15,
+    "sales": 5
+  },
+  {
+    "item": "socks",
+    "stock": 8,
+    "sales": 12
+  },
+  {
+    "item": "hat",
+    "stock": 5,
+    "sales": 2
+  },
+  {
+    "item": "shoes",
+    "stock": 12,
+    "sales": 8
+  }
+]
