@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Get the branch being pushed
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Block push if the branch is 'main'
+if [ "$branch" = "main" ]; then
+    echo "❌ Pushing directly to 'main' is not allowed!"
+    echo "🔹 Please create a feature branch and open a Pull Request."
+    exit 1
+fi
