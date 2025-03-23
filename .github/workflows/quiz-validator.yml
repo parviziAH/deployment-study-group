@@ -29,7 +29,6 @@ jobs:
 
       - name: Ensure quiz_results.md is updated
         run: |
-          # Add any command here to ensure the file is updated
           cat quiz_results.md
 
       - name: Add Results as PR Comment
@@ -37,10 +36,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            console.log("Context payload:", JSON.stringify(context.payload, null, 2));
-            console.log("Issue number from context:", context.issue.number);
-            console.log("PR number from payload:", context.payload.pull_request?.number);
-            
             const fs = require('fs');
             const resultsPath = 'quiz_results.md';
             
