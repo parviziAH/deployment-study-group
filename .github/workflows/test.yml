@@ -9,16 +9,28 @@ jobs:
       - id: env-setup
         run: |
           {
-            "env_token=production"
-            "env_domain=example.com"
+            echo "env_token=production"
+            echo "env_domain=example.com"
           } >> $GITHUB_OUTPUT
 
           {
-            echo "### Workflow variables"
-            echo "| Variable   | Value       |"
-            echo "| ---------- | ----------- |"
-            echo "| env_token  | $env_token  |"
-            echo "| env_domain | $env_domain |"
+            echo "### Quiz Validation Summary"
+            echo "| File       | Total | Answered | Missing |"
+            echo "| ---------- | ----- | -------- | ------- |"
+            echo "| module1.md | 8     | 1        | 7       |"
+            echo "| module2.md | 10    | 0        | 10      |"
+            echo "| module3.md | 10    | 0        | 10      |"
+            echo "| module4.md | 10    | 0        | 10      |"
+            echo "| module5.md | 10    | 0        | 10      |"
+            echo "| module6.md | 10    | 0        | 10      |"
+            echo ""
+            echo "### Detailed Results"
+            echo "**module1.md:**"
+            echo "- Q1: ✓"
+            echo "- Q2: ✗"
+            echo "- Q3: ✗"
+            echo "- Q4: ✗"
+            echo "- Q5: ✗"
           } >> $GITHUB_STEP_SUMMARY
       - run: |
           echo "${{ steps.env-setup.outputs.env_token }}"
