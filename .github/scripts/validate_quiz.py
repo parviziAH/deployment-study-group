@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 
 
 def find_quiz_files():
@@ -28,7 +27,7 @@ def extract_answers(file_path):
             if current_question:
                 questions.append(current_question)
             question_text = re.sub(r'\d+\.\s+\*\*|\*\*$', '', line).strip()
-            current_question = {'question': question_text, 'options': [], 'selected': None, 'correct': None}
+            current_question = {'question': question_text, 'options': [], 'selected': None}
 
         # Look for options
         option_match = option_pattern.match(line)
@@ -47,56 +46,90 @@ def extract_answers(file_path):
     return questions
 
 
-def get_report(file_path):
-    file_name = os.path.basename(file_path)
-    questions = extract_answers(file_path)
-
-    # Build the report
-    report = f"# Quiz Report: {file_name}\n\n"
-
-    # Summary statistics
-    total_questions = len(questions)
-    answered_questions = sum(1 for q in questions if q['selected'] is not None)
-
-    report += f"- Total questions: {total_questions}\n"
-    report += f"- Questions answered: {answered_questions}\n"
-    report += f"- Questions missing answers: {total_questions - answered_questions}\n\n"
-
-    # Detailed breakdown
-    report += "## Question Details\n\n"
-    for i, q in enumerate(questions):
-        status = "✅ Answered" if q['selected'] else "❌ Missing answer"
-        report += f"{i + 1}. **{q['question']}** - {status}\n"
-        if q['selected']:
-            report += f"   - Selected: {q['selected']}\n"
-        report += "\n"
-
-    return report
-
-
 def main():
-    print("# Quiz Validation Results\n")
+    # ASCII box-drawing characters for tables
+    h_line = "─"
+    v_line = "│"
+    tl_corner = "┌"
+    tr_corner = "┐"
+    bl_corner = "└"
+    br_corner = "┘"
+    t_down = "┬"
+    t_up = "┴"
+    t_right = "├"
+    t_left = "┤"
+    cross = "┼"
 
     quiz_files = find_quiz_files()
-    if not quiz_files:
-        print("No quiz files found in exercises/theory directory")
-        return
 
-    print(f"Found {len(quiz_files)} quiz files\n")
+    # Summary table for all files
+    print("QUIZ VALIDATION SUMMARY")
+    print("======================")
 
-    all_reports = []
+    # Generate the header row of the summary table
+    header = ["File", "Total Qs", "Answered", "Missing"]
+    col_widths = [20, 10, 10, 10]
+
+    # Top border
+    print(
+        f"{tl_corner}{h_line * col_widths[0]}{t_down}{h_line * col_widths[1]}{t_down}{h_line * col_widths[2]}{t_down}{h_line * col_widths[3]}{tr_corner}")
+
+    # Header row
+    print(
+        f"{v_line}{header[0].ljust(col_widths[0])}{v_line}{header[1].ljust(col_widths[1])}{v_line}{header[2].ljust(col_widths[2])}{v_line}{header[3].ljust(col_widths[3])}{v_line}")
+
+    # Separator
+    print(
+        f"{t_right}{h_line * col_widths[0]}{cross}{h_line * col_widths[1]}{cross}{h_line * col_widths[2]}{cross}{h_line * col_widths[3]}{t_left}")
+
+    # Process each file and show details
     for file_path in quiz_files:
-        report = get_report(file_path)
-        all_reports.append(report)
-        print(report)
-        print("---\n")
+        file_name = os.path.basename(file_path)
+        questions = extract_answers(file_path)
 
-    # Write the combined report to a file for reference
-    with open('quiz_validation_report.md', 'w') as f:
-        f.write("# Complete Quiz Validation Report\n\n")
-        f.write("\n\n".join(all_reports))
+        total = len(questions)
+        answered = sum(1 for q in questions if q['selected'] is not None)
+        missing = total - answered
 
-    print("Full report written to quiz_validation_report.md")
+        # Print row for this file in summary table
+        print(
+            f"{v_line}{file_name.ljust(col_widths[0])}{v_line}{str(total).ljust(col_widths[1])}{v_line}{str(answered).ljust(col_widths[2])}{v_line}{str(missing).ljust(col_widths[3])}{v_line}")
+
+    # Bottom border of summary table
+    print(
+        f"{bl_corner}{h_line * col_widths[0]}{t_up}{h_line * col_widths[1]}{t_up}{h_line * col_widths[2]}{t_up}{h_line * col_widths[3]}{br_corner}")
+
+    print("\nDETAILED RESULTS")
+    print("===============")
+
+    # For each quiz file, show detailed results
+    for file_path in quiz_files:
+        file_name = os.path.basename(file_path)
+        questions = extract_answers(file_path)
+
+        print(f"\n{file_name}")
+        print("-" * len(file_name))
+
+        # Table for individual questions
+        q_col_width = 5
+        status_col_width = 10
+
+        # Top border
+        print(f"{tl_corner}{h_line * q_col_width}{t_down}{h_line * status_col_width}{tr_corner}")
+
+        # Header row
+        print(f"{v_line}{'Q#'.ljust(q_col_width)}{v_line}{'Status'.ljust(status_col_width)}{v_line}")
+
+        # Separator
+        print(f"{t_right}{h_line * q_col_width}{cross}{h_line * status_col_width}{t_left}")
+
+        # Questions
+        for i, q in enumerate(questions):
+            status = "✓" if q['selected'] else "✗"
+            print(f"{v_line}{str(i + 1).ljust(q_col_width)}{v_line}{status.ljust(status_col_width)}{v_line}")
+
+        # Bottom border
+        print(f"{bl_corner}{h_line * q_col_width}{t_up}{h_line * status_col_width}{br_corner}")
 
 
 if __name__ == "__main__":

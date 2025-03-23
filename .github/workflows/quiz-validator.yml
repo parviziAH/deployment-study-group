@@ -19,14 +19,25 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install validation script
+        run: |
+          mkdir -p .github/scripts
+          cat > .github/scripts/validate_quiz.py << 'EOF'
+          # Script content will be here - replace with the validate_quiz.py content
+          EOF
+
       - name: Validate quiz answers
         id: validate
-        run: |
-          python .github/scripts/validate_quiz.py > quiz_summary.md
-          cat quiz_summary.md
+        run: python .github/scripts/validate_quiz.py
 
-      - name: Upload validation report
-        uses: actions/upload-artifact@v4
-        with:
-          name: quiz-validation-report
-          path: quiz_summary.md
+      - name: Check missing answers
+        run: |
+          # Extract missing answers count from validate_quiz.py output
+          # If any quiz has missing answers, fail the check
+          if grep -q "Missing.*[1-9]" <<< "$(python .github/scripts/validate_quiz.py)"; then
+            echo "::error::Some quiz questions are missing answers. Please complete all questions."
+            exit 1
+          else
+            echo "All quiz questions have been answered."
+            exit 0
+          fi
