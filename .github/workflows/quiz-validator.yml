@@ -1,8 +1,9 @@
 name: Quiz Checker
 
 on:
-  pull_request:
-    types: [ opened, labeled, synchronize ]
+  push
+#  pull_request:
+#    types: [ opened, labeled, synchronize ]
 
 jobs:
   check-quizzes:
