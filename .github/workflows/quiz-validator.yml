@@ -1,43 +1,41 @@
-name: Quiz Answer Validator
+name: Quiz Checker
+
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [labeled]
 
 jobs:
-  validate-quiz-answers:
-    if: contains(github.event.pull_request.labels.*.name, 'check_theory')
+  check-quizzes:
+    if: github.event.label.name == 'check_theory'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Fetch all history to ensure we get all files
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install validation script
+      - name: Check Quiz Answers
+        id: quiz-check
         run: |
-          mkdir -p .github/scripts
-          cat > .github/scripts/validate_quiz.py << 'EOF'
-          # Script content will be here - replace with the validate_quiz.py content
-          EOF
+          python .github/scripts/check_quizzes.py
 
-      - name: Validate quiz answers
-        id: validate
-        run: python .github/scripts/validate_quiz.py
-
-      - name: Check missing answers
-        run: |
-          # Extract missing answers count from validate_quiz.py output
-          # If any quiz has missing answers, fail the check
-          if grep -q "Missing.*[1-9]" <<< "$(python .github/scripts/validate_quiz.py)"; then
-            echo "::error::Some quiz questions are missing answers. Please complete all questions."
-            exit 1
-          else
-            echo "All quiz questions have been answered."
-            exit 0
-          fi
+      - name: Add Results as PR Comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const resultsPath = 'quiz_results.md';
+            
+            if (fs.existsSync(resultsPath)) {
+              const results = fs.readFileSync(resultsPath, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: results
+              });
+            }
