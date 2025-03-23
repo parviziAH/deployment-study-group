@@ -22,6 +22,11 @@ jobs:
         run: |
           python .github/scripts/check_quizzes.py
 
+      - name: Ensure quiz_results.md is updated
+        run: |
+          # Add any command here to ensure the file is updated
+          cat quiz_results.md
+
       - name: Add Results as PR Comment
         uses: actions/github-script@v6
         with:
