@@ -7,7 +7,7 @@ on:
 
 jobs:
   check-quizzes:
-    if: github.event.label.name == 'check_theory'
+#    if: github.event.label.name == 'check_theory'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
