@@ -1,0 +1,57 @@
+name: Quiz Checker
+
+on:
+  pull_request:
+    types: [ opened, labeled, synchronize ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-quizzes:
+    if: github.event.label.name == 'check_theory'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Check Quiz Answers
+        id: quiz-check
+        run: |
+          python .github/scripts/check_quizzes.py
+
+      - name: Ensure quiz_results.md is updated
+        run: |
+          # Add any command here to ensure the file is updated
+          cat quiz_results.md
+
+      - name: Add Results as PR Comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log("Context payload:", JSON.stringify(context.payload, null, 2));
+            console.log("Issue number from context:", context.issue.number);
+            console.log("PR number from payload:", context.payload.pull_request?.number);
+            
+            const fs = require('fs');
+            const resultsPath = 'quiz_results.md';
+            
+            if (fs.existsSync(resultsPath)) {
+              const results = fs.readFileSync(resultsPath, 'utf8');
+              const issue_number = context.payload.pull_request ? context.payload.pull_request.number : context.issue.number;
+            
+              github.rest.issues.createComment({
+                issue_number: issue_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: results
+              });
+            }
