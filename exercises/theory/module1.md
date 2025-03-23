@@ -3,16 +3,16 @@
 ## Containerization & Docker Fundamentals
 
 1. **What is the main difference between traditional deployments and containerized deployments?**
-   - [x] Containerized deployments are always faster than traditional deployments
+   - [ ] Containerized deployments are always faster than traditional deployments
    - [ ] Traditional deployments use virtual machines while containerized deployments don't use any virtualization
-   - [ ] Containerized deployments package the application with its dependencies, ensuring consistency across environments
+   - [x] Containerized deployments package the application with its dependencies, ensuring consistency across environments
    - [ ] Traditional deployments are more secure by default
 
 2. **Which of these is NOT a key benefit of containerization?**
-   - [x] Portability across different environments
+   - []  Portability across different environments
    - [ ] Isolation of application dependencies
    - [ ] Efficient resource utilization
-   - [ ] Elimination of the need for operating systems
+   - [x] Elimination of the need for operating systems
 
 3. **What does it mean when we say containers share the host kernel?**
    - [x] All containers run the same application code
