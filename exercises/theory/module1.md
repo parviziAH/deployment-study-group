@@ -9,14 +9,14 @@
    - [ ] Traditional deployments are more secure by default
 
 2. **Which of these is NOT a key benefit of containerization?**
-   - []  Portability across different environments
+   - [ ]  Portability across different environments
    - [ ] Isolation of application dependencies
    - [ ] Efficient resource utilization
    - [x] Elimination of the need for operating systems
 
 3. **What does it mean when we say containers share the host kernel?**
-   - [x] All containers run the same application code
-   - [ ] Containers use the host operating system's kernel rather than virtualizing an entire OS
+   - [ ] All containers run the same application code
+   - [x] Containers use the host operating system's kernel rather than virtualizing an entire OS
    - [ ] Container images must be built on the same system where they'll be deployed
    - [ ] Multiple users can access the same container simultaneously
 
