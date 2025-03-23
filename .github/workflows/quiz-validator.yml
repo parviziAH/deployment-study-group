@@ -3,6 +3,8 @@ name: Quiz Checker
 on:
   pull_request:
     types: [labeled]
+  push:
+    types: [ labeled ]
 
 jobs:
   check-quizzes:
