@@ -27,8 +27,7 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 - Clone this repo: `git clone <repo-url> && cd docker-kubernetes-training`
 
 ### Prerequisites
-- **Docker Desktop** (Windows/Mac) or **Docker Engine + Compose** (Linux).
-- **Minikube** (for Kubernetes modules).
+- **Docker Desktop** ([download here](https://www.docker.com/products/docker-desktop/))
 - **Jupyter Notebook**: `poetry add notebook`.
 - **Lazydocker**: Install after Module 2 (instructions provided).
 - Basic terminal familiarity.
