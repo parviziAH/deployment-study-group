@@ -38,16 +38,27 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 ### Module Structure
 | Module | Topic | Focus | Retail Use Case |
 |--------|-------|-------|-----------------|
-| 1 | Understanding the Basics (Containerization & Docker) | Core concepts and basic Docker commands | Run a stock algorithm in a container |
-| 2 | Building Custom Images | Dockerfiles and declarative configuration | Add a web frontend for stock results |
-| 3 | Multi-Container Applications & Orchestration | Docker Compose for multi-container apps | Link algorithm and frontend |
-| 4 | Towards Production: Kubernetes Basics | Intro to Kubernetes orchestration | Deploy the system to a cluster |
-| 5 | Deployment and Versioning | Production strategies and rollbacks | Update algorithm with versioning |
-| 6 | Monitoring and Troubleshooting with k9s | Real-time monitoring and debugging | Monitor and fix inventory processing |
+| 1 | Git & GitHub Basics | Version control fundamentals | Set up project repository |
+| 2 | Understanding Docker Basics | Core concepts and basic Docker commands | Run a stock algorithm in a container |
+| 3 | Building Custom Images | Dockerfiles and declarative configuration | Add a web frontend for stock results |
+| 4 | Multi-Container Applications | Docker Compose for multi-container apps | Link algorithm and frontend |
+| 5 | RESTful APIs | Building and containerizing APIs | Create inventory API endpoints |
+| 6 | API Integration | Connecting frontend to backend API | Complete inventory management system |
 
 ---
 
-### Module 1: Understanding the Basics
+### Module 1: Git & GitHub Basics
+**Goal**: Set up version control and understand Git workflow.
+
+| Topic | Content |
+|-------|---------|
+| **Concepts** | • Git vs. GitHub<br>• Branches and commits<br>• Pull requests |
+| **Exercise 1: Git Setup** | • Configure Git<br>• Create feature branch<br>• Make changes and commit |
+| **Exercise 2: GitHub Workflow** | • Push changes to GitHub<br>• Create pull request<br>• Review and merge changes |
+
+---
+
+### Module 2: Understanding Docker Basics
 **Goal**: Launch a Python container running `algorithm.py` to process inventory data.
 
 | Topic | Content |
@@ -57,32 +68,9 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 | **Exercise 2: Run Algorithm** | • Create `algorithm.py`: Calculate reorder points (e.g., `if stock < sales * 2: restock`)<br>• Create `utils.py`: Helper functions (e.g., load/save JSON)<br>• Create `input_data.json`: `[{"item": "shirt", "stock": 10, "sales": 7}]`<br>• Run: `docker run -v $(pwd):/app python:3.9 python /app/algorithm.py`<br>• Output: `output_data.json` |
 | **Exercise 3: Explore Layers** | • Build a minimal image: `FROM python:3.9; COPY algorithm.py utils.py /app/`<br>• Inspect: `docker inspect <container_id>`<br>• View layers: `docker image history inventory-algorithm` |
 
-**Sample `algorithm.py`:**
-"""
-import json
-from utils import load_json, save_json
-
-data = load_json("input_data.json")
-results = [{"item": item["item"], "restock": item["stock"] < item["sales"] * 2} for item in data]
-save_json("output_data.json", results)
-"""
-
-**Sample `utils.py`:**
-"""
-import json
-
-def load_json(file):
-    with open(file, 'r') as f:
-        return json.load(f)
-
-def save_json(file, data):
-    with open(file, 'w') as f:
-        json.dump(data, f, indent=2)
-"""
-
 ---
 
-### Module 2: Building Custom Images
+### Module 3: Building Custom Images
 **Goal**: Containerize the algorithm and add a web frontend, monitor with Lazydocker.
 
 | Topic | Content |
@@ -90,11 +78,11 @@ def save_json(file, data):
 | **Concepts** | • Dockerfiles: Syntax, instructions<br>• `.dockerignore`: Optimize builds<br>• Build context and versioning |
 | **Exercise 4: Algorithm Image** | • Dockerfile: `FROM python:3.9; COPY algorithm.py utils.py input_data.json /app/; WORKDIR /app`<br>• Build: `docker build -t inventory-algorithm .`<br>• Run: `docker run -v $(pwd)/output:/app/output inventory-algorithm python algorithm.py` |
 | **Exercise 5: Web Frontend** | • Create `index.html`: `<h1>Restock: <span id="restock"></span></h1>`<br>• Dockerfile: `FROM nginx:latest; COPY index.html /usr/share/nginx/html/; ENV OUTPUT_PATH=/app/output_data.json`<br>• Build: `docker build -t inventory-web .`<br>• Run: `docker run -d -p 80:80 -v $(pwd)/output:/app inventory-web` |
-| **Monitoring with Lazydocker** | • Install Lazydocker: [Instructions](https://github.com/jesseduffield/lazydocker#installation)<br>• Run: `lazydocker`<br>• Monitor `inventory-algorithm` and `inventory-web` |
+| **Monitoring with Lazydocker** | • Run: `lazydocker`<br>• Monitor `inventory-algorithm` and `inventory-web` |
 
 ---
 
-### Module 3: Multi-Container Applications & Orchestration
+### Module 4: Multi-Container Applications
 **Goal**: Orchestrate the algorithm and frontend with Docker Compose.
 
 | Topic | Content |
@@ -121,36 +109,25 @@ networks:
 
 ---
 
-### Module 4: Towards Production: Kubernetes Basics
-**Goal**: Deploy the inventory system to Kubernetes.
+### Module 5: RESTful APIs
+**Goal**: Build and containerize a RESTful API for inventory management.
 
 | Topic | Content |
 |-------|---------|
-| **Concepts** | • Kubernetes: Control Plane, Pods, Services<br>• Declarative config, health checks |
-| **Exercise 8: Setup Cluster** | • Install Minikube: `minikube start`<br>• Verify: `kubectl cluster-info`, `kubectl get nodes` |
-| **Exercise 9: Deploy App** | • Create `algorithm-deployment.yaml` and `web-deployment.yaml`<br>• Expose: `kubectl expose deployment web --type=NodePort --port=80`<br>• Access: `minikube service web --url` |
+| **Concepts** | • RESTful API principles<br>• FastAPI basics<br>• Containerizing APIs |
+| **Exercise 8: Build API** | • Create FastAPI endpoints for inventory<br>• Test locally with Swagger UI<br>• Containerize the API |
+| **Exercise 9: API Testing** | • Test API endpoints with curl and Postman<br>• Handle error cases<br>• Implement data validation |
 
 ---
 
-### Module 5: Deployment and Versioning
-**Goal**: Update the algorithm with new logic and test rollbacks.
+### Module 6: API Integration
+**Goal**: Connect frontend to backend API for a complete system.
 
 | Topic | Content |
 |-------|---------|
-| **Concepts** | • Versioning: Tags, semantic versioning<br>• Deployment strategies: RollingUpdate, Recreate |
-| **Exercise 10: Strategy & Rollback** | • Update `algorithm.py` (e.g., stricter restock logic)<br>• Build: `docker build -t inventory-algorithm:v2 .`<br>• Update: `kubectl set image deployment/algorithm algorithm=inventory-algorithm:v2`<br>• Rollback: `kubectl rollout undo deployment/algorithm` |
-
----
-
-### Module 6: Monitoring and Troubleshooting with k9s
-**Goal**: Monitor and debug the inventory system.
-
-| Topic | Content |
-|-------|---------|
-| **Concepts** | • k9s benefits<br>• Real-time monitoring, troubleshooting |
-| **Exercise 11: Setup k9s** | • Install k9s: [Instructions](https://k9scli.io/topics/install/)<br>• Run: `k9s` |
-| **Exercise 12: Monitor** | • View pods, logs, CPU/memory usage<br>• Customize views |
-| **Exercise 13: Troubleshoot** | • Diagnose algorithm failures<br>• Scale: `kubectl scale deployment/algorithm --replicas=3` |
+| **Concepts** | • Frontend-backend integration<br>• Asynchronous requests<br>• Error handling |
+| **Exercise 10: Frontend Integration** | • Update frontend to call API endpoints<br>• Implement loading states<br>• Handle API errors gracefully |
+| **Exercise 11: Complete System** | • Compose all services together<br>• Test end-to-end workflow<br>• Implement improvements |
 
 ---
 
@@ -158,19 +135,16 @@ networks:
 | Emphasis | Description |
 |----------|-------------|
 | **Practical Application** | Process retail inventory data with a custom algorithm |
-| **Troubleshooting** | Fix algorithm errors, handle bad input data |
-| **Security** | Use non-root users, secure file mounts |
-| **Realism** | Simulate stock analysis, updates, and scaling |
-| **Monitoring** | Use Lazydocker and k9s for observability |
-
-### Notable Quotes
-- **Buelta's Book**: "Containers are extremely portable… lightweight… and secure."
-- **Docker Up and Running 2023**: "Docker made Linux containers approachable for all engineers."
+| **Version Control** | Use Git and GitHub for collaborative development |
+| **Containerization** | Package applications with Docker for consistency |
+| **API Development** | Build RESTful services for inventory management |
+| **Integration** | Connect frontend and backend components |
+| **Monitoring** | Use Lazydocker for container observability |
 
 ### Getting Started
-1. Install prerequisites.
+1. Install prerequisites as described above.
 2. Open `exercises/module1_exercises.ipynb` in Jupyter: `jupyter notebook`.
 3. Follow quizzes and exercises in order.
-4. Ask questions in our study group!
-
-Happy deploying!
+4. For each module, create a new feature branch: `git checkout -b feature/module-1-exercises`.
+5. Commit your work and create pull requests to track your progress.
+6. Ask questions in our study group!
