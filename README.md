@@ -30,7 +30,6 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 - **Docker Desktop** ([download here](https://www.docker.com/products/docker-desktop/))
 - **Jupyter Notebook**: `poetry add notebook`.
 - **Lazydocker**: Install after Module 2 (instructions provided).
-- Basic terminal familiarity.
 
 ### Module Structure
 | Module | Topic | Focus | Retail Use Case |
@@ -125,23 +124,3 @@ networks:
 | **Concepts** | • Frontend-backend integration<br>• Asynchronous requests<br>• Error handling |
 | **Exercise 10: Frontend Integration** | • Update frontend to call API endpoints<br>• Implement loading states<br>• Handle API errors gracefully |
 | **Exercise 11: Complete System** | • Compose all services together<br>• Test end-to-end workflow<br>• Implement improvements |
-
----
-
-### Key Training Emphases
-| Emphasis | Description |
-|----------|-------------|
-| **Practical Application** | Process retail inventory data with a custom algorithm |
-| **Version Control** | Use Git and GitHub for collaborative development |
-| **Containerization** | Package applications with Docker for consistency |
-| **API Development** | Build RESTful services for inventory management |
-| **Integration** | Connect frontend and backend components |
-| **Monitoring** | Use Lazydocker for container observability |
-
-### Getting Started
-1. Install prerequisites as described above.
-2. Open `exercises/module1_exercises.ipynb` in Jupyter: `jupyter notebook`.
-3. Follow quizzes and exercises in order.
-4. For each module, create a new feature branch: `git checkout -b feature/module-1-exercises`.
-5. Commit your work and create pull requests to track your progress.
-6. Ask questions in our study group!
