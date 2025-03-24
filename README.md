@@ -6,10 +6,7 @@
 This roadmap equips participants with the skills to deploy and manage a realistic retail store inventory system using containerization and orchestration. Designed for complete beginners, it features hands-on exercises that build a functional application step-by-step, simulating real-world workflows. Starting with Docker basics, you'll create a Python-based inventory algorithm, a web frontend to display results, and scale it with Kubernetes.
 
 ### Setup
-Git Hooks Setup
-To ensure consistent development practices across our team, this repository uses Git hooks to enforce certain workflows. The most important hook prevents direct pushes to the main branch, encouraging the use of feature branches and pull requests instead.
-
-Setting Up Git Hooks
+Running this file prevents direct pushes to the main branch
 After cloning the repository, please run the following command to set up the Git hooks:
 ```
 ./.githooks/setup_githooks.sh
