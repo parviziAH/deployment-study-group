@@ -10,10 +10,27 @@
     "Why is understanding Docker layers important?": 2
   },
   "module2": {
-    "Example question 1?": 0,
-    "Example question 2?": 1,
-    "Example question 3?": 2
+    "What is a Dockerfile?": 2,
+    "Which Dockerfile instruction copies files from the host into the image?": 1,
+    "What is the purpose of the `WORKDIR` instruction in a Dockerfile?": 1,
+    "What does this Dockerfile line do? `ENV OUTPUT_PATH=/app/output_data.json`": 1,
+    "What is the purpose of a `.dockerignore` file?": 1,
+    "In our retail inventory system, why do we mount the output directory as a volume?": 2,
+    "What command would you use to build a Docker image from a Dockerfile in the current directory with the tag 'latest'?": 2,
+    "What does the `-d` flag do in the command `docker run -d -p 80:80 inventory-web`?": 1,
+    "What does the `-p 80:80` flag do in the command `docker run -d -p 80:80 inventory-web`?": 1,
+    "Why is Lazydocker useful in our containerized inventory system?": 1
+  },
+  "module3": {
+    "What is Docker Compose primarily used for?": 3,
+    "Which file format is used for Docker Compose configurations?": 2,
+    "In a Docker Compose file, what does the `services` section define?": 1,
+    "What does the following Docker Compose snippet do?": 1,
+    "Which command starts all services defined in a docker-compose.yml file in detached mode?": 2,
+    "In our retail inventory system, why do we use Docker Compose instead of running each container separately?": 2,
+    "Which command shows the logs for a specific service in a Docker Compose application?": 1,
+    "What does the `depends_on` directive in Docker Compose do?": 1,
+    "What network is created by default when you use Docker Compose?": 1,
+    "What command stops and removes all containers, networks, and volumes defined in the Docker Compose file?": 2
   }
 }
-
-}//TODO: finish this

@@ -1,30 +1,27 @@
 # Deployment & APIs Training Roadmap
 ## A Beginner's Guide to Containerization and Deployment
 
-
-### Overview
-This roadmap equips participants with the skills to deploy and manage a realistic retail store inventory system using containerization and orchestration. Designed for complete beginners, it features hands-on exercises that build a functional application step-by-step, simulating real-world workflows. Starting with Docker basics, you'll create a Python-based inventory algorithm, a web frontend to display results, and scale it with Kubernetes.
-
 ### Setup
-Running this file prevents direct pushes to the main branch
+- Clone this repo: `git clone <repo-url> && cd deployment-study-group`
+- Running this file prevents direct pushes to the main branch
 After cloning the repository, please run the following command to set up the Git hooks:
 ```
 ./.githooks/setup_githooks.sh
 ```
+- Start from the [setup.md](theory/setup.md) file.
 
 ### Scenario: Retail Store Inventory System
-You’re a DevOps engineer for a retail chain tasked with deploying an inventory management system:
+You’re a DevOps/MLOps engineer for a retail chain tasked with deploying an inventory management system:
 - **Core Component**: A Python script (`algorithm.py`) calculates stock reorder points based on sales data.
 - **Input**: `input_data.json` (e.g., item sales and stock levels).
 - **Output**: `output_data.json` (e.g., items needing restock).
-- **Evolution**: Add a web frontend, API, and production scaling over modules.
+- **Evolution**: Add API, and production scaling over modules.
 
 ### Repository Structure
 - **`theory/`**: Markdown files with quizzes to test theoretical knowledge.
 - **`exercises/`**: Jupyter notebooks with practical, retail-focused tasks.
 - **`study_material/`**: Books.
 - **`restock_calculator/`**: Sample files (e.g., `algorithm.py`, `utils.py`, `input_data.json`).
-- Clone this repo: `git clone <repo-url> && cd docker-kubernetes-training`
 
 ### Prerequisites
 - **Docker Desktop** ([download here](https://www.docker.com/products/docker-desktop/))
@@ -84,23 +81,7 @@ You’re a DevOps engineer for a retail chain tasked with deploying an inventory
 | Topic | Content |
 |-------|---------|
 | **Concepts** | • Orchestration basics<br>• Docker Compose: YAML, services, networks |
-| **Exercise 6: Compose File** | • Create `docker-compose.yml`:<br>"""
-version: '3'
-services:
-  algorithm:
-    image: inventory-algorithm
-    volumes:
-      - ./output:/app/output
-    command: python algorithm.py
-  web:
-    image: inventory-web
-    ports:
-      - "80:80"
-    volumes:
-      - ./output:/app
-networks:
-  default:
-""" |
+| **Exercise 6: Compose File** | • Create `docker-compose.yml`:<br> |
 | **Exercise 7: Manage App** | • Start: `docker compose up -d`<br>• Check: `docker compose ps`<br>• Logs: `docker compose logs algorithm`<br>• Stop: `docker compose down` |
 
 ---
