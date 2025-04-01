@@ -4,9 +4,9 @@
 
 1. **What is Docker Compose primarily used for?**
    - [ ] Creating complex Dockerfiles
-   - [ ] Managing multi-container applications
    - [ ] Hosting Docker images
    - [ ] Converting traditional applications to containers
+   - [ ] Managing multi-container applications
 
 2. **Which file format is used for Docker Compose configurations?**
    - [ ] JSON

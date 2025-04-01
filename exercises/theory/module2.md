@@ -34,8 +34,8 @@
 
 6. **In our retail inventory system, why do we mount the output directory as a volume?**
    - [ ] To increase the container's storage capacity
-   - [ ] To share output data between the host and the container
    - [ ] To improve algorithm performance
+   - [ ] To share output data between the host and the container
    - [ ] To encrypt sensitive inventory data
 
 7. **What command would you use to build a Docker image from a Dockerfile in the current directory with the tag 'inventory-web:latest'?**
@@ -58,6 +58,6 @@
 
 10. **Why is Lazydocker useful in our containerized inventory system?**
     - [ ] It automatically optimizes Docker image sizes
-    - [ ] It provides a user-friendly interface for monitoring and managing containers
+    - [ ] It provides a UI for monitoring and managing all docker components
     - [ ] It generates documentation for Docker containers
     - [ ] It synchronizes inventory data between containers
