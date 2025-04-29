@@ -32,7 +32,16 @@ whatever reason. You can check with `docker info`). Restart it, and you're good 
 
 ### Docker is Built in Layers
 Docker builds images in layers, with each instruction in your Dockerfile creating a new layer. Each layer is practically a 
-file. This is important because:
+file system snapshot. Think of it as a snapshot of file changes - similar to how you might save versions of your analysis at different stages:
+
+- Layer 1: Base Python installation (like setting up your initial environment)
+- Layer 2: Added dependencies (like installing pandas, numpy, etc.)
+- Layer 3: Added your application code (like adding your analysis scripts)
+Each layer doesn't just track the individual files that changed (like Git would) - it captures the entire file system state for those changes. When you run a container, Docker stacks these read-only file system snapshots on top of each other to create the complete environment.
+
+
+
+This is important because:
 
 1. Layers are cached - if nothing changes in a layer, Docker reuses it in subsequent builds
 2. The order matters - put frequently changing files later in your Dockerfile
