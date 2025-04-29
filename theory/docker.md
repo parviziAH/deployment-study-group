@@ -275,13 +275,14 @@ Docker containers share the host OS kernel, making them much lighter than VMs. F
 This makes Docker perfect for deploying applications in production environments.
 
 ## Wrapping Up
-You've containerized a restock calculator—a real tool for inventory management. The exercises below build on this, giving you job-ready MLOps skills.
+You've containerized a restock calculator, a real tool for inventory management. But just now business contacted you and
+image need to have 50MB less in size. 
+- How much currently is the image? 
+- What is contributing the most?
+- If you had to guess, what do you think could reduce the size (without touching the python code)?
 
 
-#TODO  
-first make some exercises talked with business and the containers need to be less than XMB, how much currently is the image? 
-What is contributing the most, what can you do to reduce the size (wihtout touching hte python code)?
-
+## The exercises below are build on the previous container
 ### Exercise 1: Create Another Container
 
 **Goal**: Build a SIMPLE python file `order_generator.py` that processes JSON output from `algorithm.py` to generate purchase orders, calculate costs, and integrate with Docker.
