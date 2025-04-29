@@ -2,7 +2,7 @@
 Docker is a tool that wraps your code, libraries, and settings into a **container**—a lightweight, portable box that runs the same way everywhere Docker's installed. Think of it like shipping a product: you pack it in a standard box, and it arrives intact no matter where it goes.
 
 **Real-world scenario:** You've built a restock calculator that works perfectly on your laptop. Your boss says, "Deploy it!" Without Docker, chaos hits:
-- Your Python version (say, 3.9) doesn't match the server's (3.7)—crash.
+- Your Python version (say, 3.10) doesn't match the server's (3.7)—crash.
 - Libraries like `json` might have version conflicts—crash.
 - File paths are different—crash.
 - Your colleague can't even run it to double-check your work.
@@ -11,28 +11,41 @@ With Docker, you pack everything—code, Python version, libraries—into one co
 the test server, or production. This is how a deployment works.
 
 ### Images vs. Containers: The Basics
+When working with deployments, you'll hear two key terms: **images** and **containers**.
 - **Image:** The blueprint. It's like a package with your code and tools (e.g., Python, your script, files, dependencies).
 You build it once with `docker build`.
 - **Container:** The running version of the **image**. It's what you launch from the image with `docker run`. Stop it or 
-run it again.
+run it again (this is also why it's called "Docker" and the logo is a whale that carries a container)
 
-**Think of it like this:** An image is a cake recipe—mix the ingredients, bake it once. A container is a slice—you cut 
-as many as you need, and they're all identical. You'll build one image and spin up containers to test or deploy.
+**Think of it like this:**  An image is your company's standard workstation setup - carefully configured once by IT. 
+Containers are like individual employees' workstations - all starting from the same setup, but each running independently. 
+When a project needs more workers, you don't rebuild the setup - you just bring in more pre-configured workstations 
+(containers) from your template (image).
 
 ### The Docker Daemon: Who's doing the trick?
 Docker isn't magic—it's powered by the **Docker daemon**, a background process on your machine (or server) that manages 
 images, containers, and everything else. When you type a command like `docker run`, you're telling the daemon, "Hey, do 
-this for me." It's like a chef in the kitchen—you give the orders, it cooks the meal.
+this for me". You give the orders, it obeys.
 
 - **Why care?** If Docker's not working, it's often because the daemon's stopped (e.g., Docker Desktop isn't running for
 whatever reason. You can check with `docker info`). Restart it, and you're good to go again.
 
 ### Docker is Built in Layers
-Docker builds images in layers, with each instruction in your Dockerfile creating a new layer. This is important because:
+Docker builds images in layers, with each instruction in your Dockerfile creating a new layer. Each layer is practically a 
+file system snapshot. Think of it as a snapshot of file changes - similar to how you might save versions of your analysis at different stages:
+
+- Layer 1: Base Python installation (like setting up your initial environment)
+- Layer 2: Added dependencies (like installing pandas, numpy, etc.)
+- Layer 3: Added your application code (like adding your analysis scripts)
+Each layer doesn't just track the individual files that changed (like Git would) - it captures the entire file system state for those changes. When you run a container, Docker stacks these read-only file system snapshots on top of each other to create the complete environment.
+
+
+
+This is important because:
 
 1. Layers are cached - if nothing changes in a layer, Docker reuses it in subsequent builds
 2. The order matters - put frequently changing files later in your Dockerfile
-3. Each layer adds to the image size
+3. Each layer adds to the image size (since a layer == a file)
 
 For the restock calculator, you'd want to put your Python dependencies first, then copy your code files. This way, 
 if you update your code but not your dependencies, Docker only rebuilds from the code layer, saving time.
@@ -42,7 +55,7 @@ A `Dockerfile` is a text file that tells Docker how to build your image. No `Doc
 Here's a basic one for our restock calculator:
 
 ```
-FROM python:3.9-slim
+FROM python:3.10-slim
 WORKDIR /app
 COPY restock_calculator/lib/algorithm.py /app/
 COPY restock_calculator/lib/utils.py /app/
@@ -50,22 +63,23 @@ CMD ["python", "algorithm.py"]
 ```
 
 - **Breaking down the instructions:**
-  - `FROM`: Picks the base image—like choosing a starter kit. Here, `python:3.9-slim` gives you Python 3.9 with minimal extras (lightweight).
-  - `WORKDIR`: Sets the working directory inside the container to `/app`.
+  - `FROM`: Picks the base image—like choosing a starter kit. Yes, a layer can also be **another image**. Here, 
+  `python:3.10-slim` gives you Python 3.10 with minimal extras (the "slim" part).
+  - `WORKDIR`: Sets the working directory inside the container to `/app`. The container can be explored like a file system.
   - `COPY`: Moves files from your machine to the container. We copy both the algorithm and utils files.
-  - `CMD`: Sets the default command to run when the container starts. `["python", "algorithm.py"]` says, "Run this script with Python."
+  - `CMD`: Sets the default command to run when the container starts. `["python", "algorithm.py"]` it's like typing in the
+  terminal `python algorithm.py`
 
 Save this as `Dockerfile` (no extension) in your project's root folder.
 
 ### More Dockerfile Commands You'll Use
-Here's the rundown of key `Dockerfile` instructions—think of them as steps in a recipe:
+Here's the rundown of key `Dockerfile` instructions. Each line corresponds to a layer:
 - **WORKDIR**: Sets the "current directory" inside the container, like `cd` in a terminal. Example: `WORKDIR /app` makes `/app` your base folder.
 - **RUN**: Executes a command during the build—like installing stuff. Example: `RUN pip install numpy` adds NumPy to your image.
 - **COPY**: Copies files from your machine to the container. Example: `COPY . .` grabs everything in your folder (careful with this—only copy what's needed).
 - **ENV**: Sets environment variables, like settings you can tweak. Example: `ENV MY_VAR=value`.
 - **ENTRYPOINT**: Locks in a base command (e.g., `ENTRYPOINT ["python"]`), letting `CMD` add arguments.
 
-Why? Each line builds your image layer by layer—miss one, and your container's toast.
 
 ### Building It: What's the `.` in `docker build`?
 Run this in your terminal, in the same folder as your `Dockerfile`:
@@ -119,13 +133,13 @@ if __name__ == "__main__":
 This script calculates which inventory items need restocking based on current stock and sales data, using a simple rule: 
 if stock is less than twice the sales, the item needs restocking.
 
-### Basic Docker Commands: Your Toolkit
+### Basic Docker Commands: The Toolkit
 Here's what you'll type daily to control Docker:
 - **docker build**: Builds an image from a `Dockerfile`. Example: `docker build -t my-image .`.
 - **docker run**: Starts a container from an image. Example: `docker run my-image`.
   - Add `--rm` to delete it after: `docker run --rm my-image`.
-  - Add `-it` for interactive mode (see output): `docker run -it my-image`.
-- **docker ps**: Lists running containers. Add `-a` for all containers: `docker ps -a`.
+  - Add `-it` for interactive mode (accessing it as it was a folder): `docker run -it my-image`.
+- **docker ps**: List of running containers. Add `-a` for all containers: `docker ps -a`.
 - **docker stop**: Stops a running container. Example: `docker stop <container_id>` (grab the ID from `docker ps`).
 - **docker rm**: Deletes a stopped container. Example: `docker rm <container_id>`.
 - **docker images**: Lists your images. Example: `docker images`.
@@ -151,7 +165,7 @@ docker run -v $(pwd)/data:/app/data restock-calculator
 But first, we need to update our Dockerfile to look for files in the data directory:
 
 ```
-FROM python:3.9-slim
+FROM python:3.10-slim
 WORKDIR /app
 COPY restock_calculator/lib/algorithm.py /app/
 COPY restock_calculator/lib/utils.py /app/
@@ -204,7 +218,7 @@ if __name__ == "__main__":
 Set a working directory:
 
 ```
-FROM python:3.9-slim
+FROM python:3.10-slim
 WORKDIR /app
 COPY sales_predictor.py .
 CMD ["python", "./sales_predictor.py"]
@@ -270,25 +284,46 @@ Docker containers share the host OS kernel, making them much lighter than VMs. F
 This makes Docker perfect for deploying applications in production environments.
 
 ## Wrapping Up
-You've containerized a restock calculator—a real tool for inventory management. The exercises below build on this, giving you job-ready MLOps skills.
+You've containerized a restock calculator, a real tool for inventory management. But just now business contacted you and
+image need to have 50MB less in size. 
+- How much currently is the image? 
+- What is contributing the most?
+- If you had to guess, what do you think could reduce the size (without touching the python code)?
 
-### Subchapter 3.1: Introduction to Docker
-- **Exercise 1**: Write a `Dockerfile` for `algorithm.py` with Python 3.9.
-- **Exercise 2**: Build and run it with `docker build -t restock-calculator .` and `docker run restock-calculator`.
-- **Exercise 3**: Add a print statement to log more details about the restocking process. Rebuild and run.
-- **Exercise 4**: Create a sample `input_data.json` file and mount it as a volume.
-- **Exercise 5**: Add `WORKDIR /app` to the `Dockerfile`, adjust paths, rebuild, and test.
 
-### Subchapter 3.2: Managing Dependencies and Data
-- **Exercise 1**: Add Poetry to your Dockerfile for dependency management.
-- **Exercise 2**: Modify `algorithm.py` to accept a restock threshold as an environment variable.
-- **Exercise 3**: Mount an output directory and save the results there.
-- **Exercise 4**: Add `ENV RESTOCK_THRESHOLD=2` and use it in your algorithm. Run with `-e` to override.
-- **Exercise 5**: Create a Docker volume for persistent data storage.
+## The exercises below are build on the previous container
+### Exercise 1: Create Another Container
 
-### Subchapter 3.3: Scaling Up
-- **Exercise 1**: Tag your image (e.g., `restock-calculator:v1.0`) and check with `docker images`.
-- **Exercise 2**: Add a more sophisticated restocking algorithm with weighted averages.
-- **Exercise 3**: Write a `docker-compose.yml` to run with mounted input and output volumes.
-- **Exercise 4**: Add logging to the script, rebuild, and test.
-- **Exercise 5**: Clean up all containers with `docker ps -a` and `docker rm`.
+**Goal**: Build a SIMPLE python file `order_generator.py` that processes JSON output from `algorithm.py` to generate purchase orders, calculate costs, and integrate with Docker.
+
+**Steps**:
+1. Implement `order_generator.py`:
+  * Create a function to read JSON output from `algorithm.py` identifying items needing restocking.
+  * Generate purchase orders with fields: item name, quantity, supplier, and timestamp.
+  * Calculate total order cost using a hardcoded price list (e.g., `{"item1": 10.0, "item2": 15.0}`).
+  * Save orders to a JSON file (e.g., `orders.json`).
+2. Update Dockerfile:
+  * Base image: `python:3.10-slim`.
+  * Make it depend on `algorithm.py`'s **output**.
+3. Run the container
+
+---
+
+
+### Exercise 2: Implement Environment Variable Configuration
+
+**Objective**: Enhance `order_generator.py` to use environment variables for configuration, updating Docker files accordingly.
+
+**Steps**:
+* Modify `order_generator.py`:
+  * Read `DEFAULT_SUPPLIER` environment variable to set supplier (default: "SupplierA").
+  * Apply pricing tiers using `BULK_DISCOUNT_THRESHOLD` (e.g., 10% discount if quantity > threshold).
+  * Use `ORDER_API_ENDPOINT` for a mock order submission (print endpoint for now).
+* Update Dockerfile:
+  * Add `ENV` instructions or allow passing environment variables.
+* Update `docker-compose.yml`:
+  * Add environment variables to `order-generator` service:
+    * `DEFAULT_SUPPLIER=SupplierA`
+    * `BULK_DISCOUNT_THRESHOLD=100`
+* Test configuration:
+  * Run with different environment variable values to verify behavior.
