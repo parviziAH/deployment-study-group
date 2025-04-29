@@ -1,4 +1,3 @@
-import json
 from utils import load_json, save_json
 
 
@@ -23,8 +22,11 @@ def calculate_restock_needs():
         })
 
     # Save results to output file
-    save_json("output_data.json", results)
-    print(f"Processed {len(data)} inventory items. Results saved to output_data.json")
+    try:
+        save_json("output_data.json", results)
+        print(f"Processed {len(data)} inventory items. Results saved to output_data.json")
+    except Exception as e:
+        raise Exception(f"Error:{e}")
 
 
 if __name__ == "__main__":

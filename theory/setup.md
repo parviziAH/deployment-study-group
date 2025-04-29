@@ -67,9 +67,6 @@ cd deployment-study-group
 # Set local Python version for this project
 pyenv local 3.12
 
-# Initialize Poetry in your project
-poetry init  # Follow the interactive prompts
-
 # Create and activate virtual environment
 poetry shell
 
