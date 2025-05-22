@@ -50,6 +50,15 @@ This is important because:
 For the restock calculator, you'd want to put your Python dependencies first, then copy your code files. This way, 
 if you update your code but not your dependencies, Docker only rebuilds from the code layer, saving time.
 
+### Why Docker Beats Virtual Machines
+Docker containers share the host OS kernel, making them much lighter than VMs. For our restock calculator:
+- A VM would need a full OS (gigabytes) just to run a simple Python script
+- A Docker container only needs Python and your code (megabytes)
+- Containers start in seconds, VMs take minutes
+- You can run many containers on one machine, but only a few VMs
+
+This makes Docker perfect for deploying applications in production environments.
+
 ### Your First Dockerfile: The Recipe
 A `Dockerfile` is a text file that tells Docker how to build your image. No `Dockerfile`, no container—it's that simple. 
 Here's a basic one for our restock calculator:
@@ -59,6 +68,9 @@ FROM python:3.10-slim
 WORKDIR /app
 COPY restock_calculator/lib/algorithm.py /app/
 COPY restock_calculator/lib/utils.py /app/
+COPY restock_calculator/files/input_data.json /app/
+
+RUN mkdir -p /app/data
 CMD ["python", "algorithm.py"]
 ```
 
@@ -66,7 +78,8 @@ CMD ["python", "algorithm.py"]
   - `FROM`: Picks the base image—like choosing a starter kit. Yes, a layer can also be **another image**. Here, 
   `python:3.10-slim` gives you Python 3.10 with minimal extras (the "slim" part).
   - `WORKDIR`: Sets the working directory inside the container to `/app`. The container can be explored like a file system.
-  - `COPY`: Moves files from your machine to the container. We copy both the algorithm and utils files.
+  - `COPY`: Moves files from your machine to the container. We copy the algorithm, utils files, and the input that we need
+generate the output.
   - `CMD`: Sets the default command to run when the container starts. `["python", "algorithm.py"]` it's like typing in the
   terminal `python algorithm.py`
 
@@ -74,11 +87,13 @@ Save this as `Dockerfile` (no extension) in your project's root folder.
 
 ### More Dockerfile Commands You'll Use
 Here's the rundown of key `Dockerfile` instructions. Each line corresponds to a layer:
-- **WORKDIR**: Sets the "current directory" inside the container, like `cd` in a terminal. Example: `WORKDIR /app` makes `/app` your base folder.
+- **WORKDIR**: Sets the "current directory" inside the container, like `cd` in a terminal. Example: `WORKDIR /app` makes `/app` your base folder. Why? For structure, readability and debugging.
 - **RUN**: Executes a command during the build—like installing stuff. Example: `RUN pip install numpy` adds NumPy to your image.
 - **COPY**: Copies files from your machine to the container. Example: `COPY . .` grabs everything in your folder (careful with this—only copy what's needed).
 - **ENV**: Sets environment variables, like settings you can tweak. Example: `ENV MY_VAR=value`.
 - **ENTRYPOINT**: Locks in a base command (e.g., `ENTRYPOINT ["python"]`), letting `CMD` add arguments.
+- **VOLUME**: Shares a folder with the host machine. Example: `VOLUME /data` makes `/data` accessible from both the 
+container and your machine.
 
 
 ### Building It: What's the `.` in `docker build`?
@@ -152,136 +167,28 @@ Launch it:
 docker run restock-calculator
 ```
 
-However, you'll notice an error because the container can't find `input_data.json`. Let's fix that by mounting a volume.
+However, you'll notice that while the application runs, there's no way to retrieve the output file after the container 
+exits. The output is generated inside the container but is lost when the container stops.
 
 ### Handling Data Files with Volumes
-Our restock calculator needs input and output files. We can use Docker volumes to mount these:
-
-#TO CHECK
-```
-docker run -v $(pwd)/data:/app/data restock-calculator
-```
-
-But first, we need to update our Dockerfile to look for files in the data directory:
-
-```
-FROM python:3.10-slim
-WORKDIR /app
-COPY restock_calculator/lib/algorithm.py /app/
-COPY restock_calculator/lib/utils.py /app/
-RUN mkdir -p /app/data
-ENV INPUT_FILE=/app/data/input_data.json
-ENV OUTPUT_FILE=/app/data/output_data.json
-CMD ["python", "algorithm.py"]
-```
-
-And modify our algorithm.py to use environment variables:
-
-```python
-import json
-import os
-from utils import load_json, save_json
-
-def calculate_restock_needs():
-    """
-    Calculates which inventory items need restocking based on current stock and sales data.
-    Restock rule: if stock < sales * 2, item needs restocking
-    """
-    # Load inventory data
-    input_file = os.getenv("INPUT_FILE", "input_data.json")
-    output_file = os.getenv("OUTPUT_FILE", "output_data.json")
-    
-    data = load_json(input_file)
-
-    # Process each item to determine restock needs
-    results = []
-    for item in data:
-        needs_restock = item["stock"] < item["sales"] * 2
-        results.append({
-            "item": item["item"],
-            "current_stock": item["stock"],
-            "recent_sales": item["sales"],
-            "restock": needs_restock,
-            "recommended_order": (item["sales"] * 2 - item["stock"]) if needs_restock else 0
-        })
-
-    # Save results to output file
-    save_json(output_file, results)
-    print(f"Processed {len(data)} inventory items. Results saved to {output_file}")
+What just happened is because Docker containers are temporary by design: when they stop running, any data created inside 
+them is lost unless specifically saved. This approach might be sufficient for applications that don't need to save 
+data or for simple testing, but it's not practical for data processing applications like our restock calculator.
 
 
-if __name__ == "__main__":
-    calculate_restock_needs()
-```
+To solve this problem, we can use Docker volumes which are dedicated storage locations that exist outside the 
+container's filesystem. Think of them as bridges connecting your container to the host (or cloud) machine's storage. 
+They allow data to still exists outside the container's lifecycle.
 
-### WORKDIR: Keeping It Organized
-Set a working directory:
+To implement, we need to modify our Dockerfile to:
+1. Adjust `algorithm.py` so that it accept an output path as argument
+2. Create a local folder for the data
+3. Declare the volume in the Dockerfile
+4. Run the container with the tag `-v` followed by the directory you just created + ":" + the path inside the container
+   (e.g. my/local/path:/container/path)
+5. Check that the application actually writes to this directory
 
-```
-FROM python:3.10-slim
-WORKDIR /app
-COPY sales_predictor.py .
-CMD ["python", "./sales_predictor.py"]
-```
-
-- `WORKDIR /app`: Makes `/app` the default folder.
-- `COPY sales_predictor.py .`: Copies to `/app` (dot = current directory).
-- `CMD`: Uses `./` since we’re in `/app`.
-
-Why? For structure, readability and debugging.
-
-### Passing Data with Arguments
-
-```
-MAKE THE RUN FOR THE ALGORITHM.py. SO THAT THEY'RE FED TO THE PYTHON FILE AND AN OUTPUT FILE IS CREATED.
-```
-
-
-### Managing Dependencies with Poetry
-If your project uses Poetry for dependency management, you can incorporate it into your Dockerfile:
-
-```
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install poetry
-RUN pip install poetry
-
-# Copy only pyproject.toml and poetry.lock first to leverage Docker cache
-COPY pyproject.toml poetry.lock* /app/
-
-# Configure poetry to not create a virtual environment
-RUN poetry config virtualenvs.create false
-
-# Install dependencies
-RUN poetry install --no-dev
-
-# Now copy the rest of the application
-COPY restock_calculator /app/restock_calculator
-
-# Create data directory
-RUN mkdir -p /app/data
-
-# Set environment variables
-ENV INPUT_FILE=/app/data/input_data.json
-ENV OUTPUT_FILE=/app/data/output_data.json
-
-# Run the application
-CMD ["python", "restock_calculator/lib/algorithm.py"]
-```
-
-This approach installs dependencies first (which change less frequently) before copying your code (which changes more often), making better use of Docker's layer caching.
-
-
-### Why Docker Beats Virtual Machines
-Docker containers share the host OS kernel, making them much lighter than VMs. For our restock calculator:
-- A VM would need a full OS (gigabytes) just to run a simple Python script
-- A Docker container only needs Python and your code (megabytes)
-- Containers start in seconds, VMs take minutes
-- You can run many containers on one machine, but only a few VMs
-
-This makes Docker perfect for deploying applications in production environments.
+Try to do it!
 
 ## Wrapping Up
 You've containerized a restock calculator, a real tool for inventory management. But just now business contacted you and
@@ -309,21 +216,55 @@ image need to have 50MB less in size.
 
 ---
 
+### Exercise 2: Implement Environment Variables for Output Configuration
 
-### Exercise 2: Implement Environment Variable Configuration
+**Goal**: Configure your application to use environment variables for specifying output locations, allowing flexible file paths without code changes.
+**Steps**:
 
-**Objective**: Enhance `order_generator.py` to use environment variables for configuration, updating Docker files accordingly.
+1. Modify algorithm.py to read environment variables:
+   * Use `OUTPUT_PATH` to determine where to save the output file
+   * Add fallback to a default location if variable isn't set
+2. Update Dockerfile:
+   * Add `ENV` command
+   * Keep the simple `CMD ["python", "algorithm.py"]` structure
+3. Test your implementation:
+   * Build and run with default settings
+   * Verify output appears in the mounted volume with expected filename
+   * Verify output appears in the local directory with expected filename
+
+
+
+### Exercise 3: Build step and installing the whl 
+
+**Goal**: Create a Docker image with a build step to install a Python wheel file.
+
+
+##### What is Poetry build?
+`poetry build` is a command that packages your Python project into distribution formats (wheel (`.whl` for example). 
+It handles dependency resolution and metadata generation automatically based on your `pyproject.toml` configuration.
+
+##### What is a wheel?
+A wheel (.whl) is a built package format for Python that contains all ready-to-install components of a project. 
+Unlike source distributions, wheels are pre-built, making installation faster and more reliable as they don't require 
+a compilation step.
+
+##### Why use wheels in production containers?
+Production containers typically use wheels because:
+  * Faster deployment - no compilation needed during container startup
+  * Smaller images - build dependencies aren't required in the final container
+  * Better security - reduces attack surface by excluding development tools
+  * Simplified dependency management - all dependencies are resolved ahead of time
 
 **Steps**:
-* Modify `order_generator.py`:
-  * Read `DEFAULT_SUPPLIER` environment variable to set supplier (default: "SupplierA").
-  * Apply pricing tiers using `BULK_DISCOUNT_THRESHOLD` (e.g., 10% discount if quantity > threshold).
-  * Use `ORDER_API_ENDPOINT` for a mock order submission (print endpoint for now).
-* Update Dockerfile:
-  * Add `ENV` instructions or allow passing environment variables.
-* Update `docker-compose.yml`:
-  * Add environment variables to `order-generator` service:
-    * `DEFAULT_SUPPLIER=SupplierA`
-    * `BULK_DISCOUNT_THRESHOLD=100`
-* Test configuration:
-  * Run with different environment variable values to verify behavior.
+
+1. First, build your wheel file locally using Poetry:
+   ```
+    poetry build
+    ```
+2. Create a Dockerfile that installs this wheel:
+ * Copy the wheel file
+ * Install the wheel
+ * Set up volume and environment
+3. Test your implementation
+
+
